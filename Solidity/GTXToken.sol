@@ -91,6 +91,8 @@ contract Token is StandardToken {
     address constant private wallet5 = 0x950f4cbA1221c2561493199dc8f87051EaFD8CB4;
     address constant private wallet6 = 0xA29544AB0105Af632b7c56616b8cf517c78164c3;
 
+    event adminEvent(address indexed _callingAdmin, address indexed _affectedAdmin, string action);
+    event allowTransfers(address indexed _callingAdmin, bool _transfersAllowed);
 
 
     modifier onlyAdmins {
@@ -155,11 +157,6 @@ contract Token is StandardToken {
         require(totalSupply == created);
     }
 
-    //Turn on / off the transfer of tokens
-    function changeTransfer(bool allowed) onlyAdmins external {
-        allowTransfer = allowed;
-    }
-
     //mints amount new tokens and transfers them to to address.
     //only admins can mint new tokens.
     //maximum amount of tokens you can mint at any one time is 250M
@@ -174,10 +171,17 @@ contract Token is StandardToken {
         return true;
     }
 
+    //Turn on / off the transfer of tokens
+    function changeTransfer(bool allowed) onlyAdmins external {
+        allowTransfer = allowed;
+        emit allowTransfers(msg.sender, allowTransfer);
+    }
+
     //add admin to the list of approved admins
     function addAdmin(address newAdmin) onlyAdmins external {
         require (newAdmin != address(0) && admins[newAdmin] == false);
         admins[newAdmin] = true;
+        emit adminEvent(msg.sender, newAdmin, "added");
     }
 
     //remove an admin from the list of approved admins
@@ -186,6 +190,7 @@ contract Token is StandardToken {
         require(admins[oldAdmin] == true);
         require(msg.sender != oldAdmin); //prevents removing your self, and removing the last admin on the contract.
         admins[oldAdmin] = false;
+        emit adminEvent(msg.sender, oldAdmin, "removed");
     }
 
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) external returns (bool success) {
