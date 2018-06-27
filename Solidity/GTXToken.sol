@@ -52,18 +52,10 @@ library SafeMath {
 }
 
 /*
-
-BASIC ERC20 Crowdsale ICO ERC20 Token
-
-Create this Token contract AFTER you already have the Sale contract created.
-
-   Token(address sale_address)   // creates token and links the Sale contract
-
-@author Hunter Long
-@repo https://github.com/hunterlong/ethereum-ico-contract
-
+* ERC20 Token
+* based on the Hunter Long ERC20 token
+* @repo https://github.com/hunterlong/ethereum-ico-contract
 */
-
 
 contract BasicToken {
     using SafeMath for uint256;
@@ -255,9 +247,9 @@ contract Token is StandardToken {
     * @param _value the amount of tokens to burn
     */
     function burnFrom(address _from, uint256 _value) onlyAdmins public returns (bool success) {
-        require(balances[_from] >= _value);                 // Check if the targeted balance is enough
-        balances[_from] = balances[_from].sub(_value);                          // Subtract from the targeted balance
-        totalSupply = totalSupply.sub(_value);                              // Update totalSupply
+        require(balances[_from] >= _value);                     // Check if the targeted balance is enough
+        balances[_from] = balances[_from].sub(_value);          // Subtract from the targeted balance
+        totalSupply = totalSupply.sub(_value);                  // Update totalSupply
         emit Burn(_from, _value);
         return true;
     }
