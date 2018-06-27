@@ -69,6 +69,7 @@ contract StandardToken is BasicToken {
     mapping (address => mapping (address => uint256)) allowed;
 }
 
+interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
 
 contract Token is StandardToken {
 
@@ -193,10 +194,17 @@ contract Token is StandardToken {
         emit adminEvent(msg.sender, oldAdmin, "removed");
     }
 
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) external returns (bool success) {
-        allowed[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
-        require(_spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData));
-        return true;
+    /**
+    * Set allowance for other address and notify
+    *
+    * Allows `_spender` to spend no more than `_value` tokens in your behalf, and then ping the contract about it
+    */
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
+        require(_spender != address(0));
+        tokenRecipient spender = tokenRecipient(_spender);
+        if (approve(_spender, _value)) {
+            spender.receiveApproval(msg.sender, _value, this, _extraData);
+            return true;
+        }
     }
 }
