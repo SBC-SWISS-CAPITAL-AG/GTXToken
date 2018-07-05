@@ -1,2 +1,2 @@
 # GTXToken
-An ERC20 Token and Multisig Wallet.
+The GTX Travel ERC20 token for the Etehereum network.
