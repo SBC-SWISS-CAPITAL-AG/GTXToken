@@ -1,5 +1,5 @@
 const Token = artifacts.require("Token");
-// var web3 = require("Web3");
+
 contract('Token', function(accounts) {
 
     describe("Constructor Setup", function(){
@@ -64,15 +64,19 @@ contract('Token', function(accounts) {
                 return tokenInstance.allowTransfer();
             }).then(function (allowTransfer) {
                 assert(allowTransfer === true, "allowTransfer should be on by default");
-                tokenInstance.changeTransfer(false, {from: accounts[0]});
+                return tokenInstance.changeTransfer(false, {from: accounts[0]});
+            }).then(function () {
+                //put after a then() so as to remove the race condition on the transaction
                 return tokenInstance.allowTransfer();
             }).then(function (allowTransfer){
                 assert(allowTransfer === false, "allowTransfer should be turned off");
                 tokenInstance.changeTransfer(true, {from: accounts[0]});
+            }).then(function () {
+
             });
         });
 
-        it("Test correctly adding and removing an admin", function () {
+        it("Test correctly adding an admin", function () {
             let tokenInstance;
             return Token.deployed().then(function(instance) {
                 tokenInstance = instance;
@@ -86,6 +90,16 @@ contract('Token', function(accounts) {
                 assert.equal(result.logs[0].args._callingAdmin, accounts[0], "Event callingAdmin should be accounts[0]");
                 assert.equal(result.logs[0].args._affectedAdmin, accounts[1], "Event affectedAdmin should be accounts[1]");
                 assert.equal(result.logs[0].args.action,"added", "Event Amount announced should be amount sent");
+            });
+        });
+
+        it("Test correctly removing an admin", function () {
+            let tokenInstance;
+            return Token.deployed().then(function(instance) {
+                tokenInstance = instance;
+                return tokenInstance.admins(accounts[0], {from: accounts[0]});
+            }).then(function(isAdmin) {
+                assert(isAdmin, "The account that deployed the Token should automatically be added as an admin");
                 return tokenInstance.admins(accounts[1], {from: accounts[1]});
             }).then (function (isAdmin) {
                 assert(isAdmin === true, "The new admin should have been added");
@@ -108,11 +122,10 @@ contract('Token', function(accounts) {
             });
         });
 
-        it("Test incorrectly adding and removing admins", function() {
+        it("Test removing your self as admin", function() {
             let tokenInstance;
             return Token.deployed().then(function(instance){
                 tokenInstance = instance;
-                //Confrim acocunts[0] is still an admin.
                 return tokenInstance.admins(accounts[0], {from: accounts[0]});
             }).then (function (isAdmin) {
                 assert(isAdmin === true, "Confirm default account is an admin");
@@ -122,9 +135,15 @@ contract('Token', function(accounts) {
                 assert.fail("Should throw error trying to remove self");
             }).catch(function (error) {
                 assert(error.message.indexOf('revert') >= 0, "Should throw revert error");
-                //Test removing an Admin while not an Admin
+            });
+        });
+
+        it("Test removing an Admin while not an Admin", function () {
+            let tokenInstance;
+            return Token.deployed().then(function(instance){
+                tokenInstance = instance;
                 return tokenInstance.admins(accounts[0], {from: accounts[0]});
-            }).then(function (isAdmin) {
+            }).then (function (isAdmin) {
                 assert(isAdmin === true, "Confirming that account 0 is still admin");
                 return tokenInstance.admins(accounts[2], {from: accounts[2]});
             }).then(function (isAdmin) {
@@ -134,18 +153,31 @@ contract('Token', function(accounts) {
                 assert.fail("accounts[2] is not an admin, and removed an Admin account. This should have failed.");
             }).catch(function (error) {
                 assert(error.message.indexOf('revert') >= 0, "Non-admin was not able to remove an Admin");
-                //Test double adding an admin (should Revert to save Gas)
+
+            });
+        });
+
+        it("Test double adding an admin (adding existing admin)", function () {
+            let tokenInstance;
+            return Token.deployed().then(function(instance){
+                tokenInstance = instance;
                 return tokenInstance.admins(accounts[0], {from: accounts[0]});
-            }).then(function (isAdmin) {
+            }).then (function (isAdmin) {
                 assert(isAdmin === true, "accounts[0] should still be an admin");
                 return tokenInstance.addAdmin(accounts[0], {from: accounts[0]});
             }).then(function () {
                 assert.fail("Should not be able to add existing Admin.");
             }).catch(function (error) {
                 assert(error.message.indexOf('revert') >= 0, "Was not able to re-add existing admin. Correct.");
-                //Test adding an Admin from a non-admin.
+            });
+        });
+
+        it("Test adding an admin from a non-admin", function () {
+            let tokenInstance;
+            return Token.deployed().then(function(instance){
+                tokenInstance = instance;
                 return tokenInstance.admins(accounts[2], {from: accounts[2]});
-            }).then(function (isAdmin) {
+            }).then (function (isAdmin) {
                 assert(isAdmin === false, "accounts[2] should not be an admin.");
                 return tokenInstance.addAdmin(accounts[2], {from: accounts[2]});
             }).then(function () {
@@ -242,6 +274,14 @@ contract('Token', function(accounts) {
             });
         });
 
+        it("Test transfer by sending negative token values", function() {
+
+        });
+
+        it("Test transfer with buffer overflow", function () {
+            const maxUint = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
+           //TODO: find a simple way to get enough tokens to test the overflow
+        });
     });
 
     describe('mintToken', function() {
