@@ -120,15 +120,15 @@ contract Token is StandardToken {
     string public name = "GTX Travel";
     string public symbol = "GTX";
     uint256 public decimals = 18;
-    string public version = "GTX 0.1.3";
-    uint256 private  million = 10**6;
+    string public version = "GTX 0.1.4";
+    uint256 private constant million = 10**6;
     mapping(address => bool) public admins;
-    address constant private test_wallet1 = 0xDaa70996F99D046152477aA9f1739604e0e4011F;
-    address constant private test_wallet2 = 0x768E83529eF73f16C856644748f709D5AcBF2ce2;
-    address constant private test_wallet3 = 0xDb07b0c66984e6A5a0A6408e5851D7479b459804;
-    address constant private test_wallet4 = 0x7271b26275B8fFd77b562cf7A6BB00E90C78a784;
-    address constant private test_wallet5 = 0x950f4cbA1221c2561493199dc8f87051EaFD8CB4;
-    address constant private test_wallet6 = 0xA29544AB0105Af632b7c56616b8cf517c78164c3;
+    address constant private test_wallet1 = 0x8198660ea9296F728802d29c3E68d3Fc65ca9316;
+    address constant private test_wallet2 = 0x931Eeaf550e7b9dB943Be1f8C441a6B63c53166C;
+    address constant private test_wallet3 = 0x2085d89EdE3271809962ba018dFCDE09952a1bCE;
+    address constant private test_wallet4 = 0xa8Fd1968C3002AeC4bbC27BC248120E6C0660CeE;
+    address constant private test_wallet5 = 0x9e4eC2c2608eD71ED5Dd135aEe45A6f233F6719b;
+    address constant private test_wallet6 = 0x88463961C66f759477943762dE5d17969f8A5360;
     address constant private wallet1 = 0xDaa70996F99D046152477aA9f1739604e0e4011F;
     address constant private wallet2 = 0x768E83529eF73f16C856644748f709D5AcBF2ce2;
     address constant private wallet3 = 0xDb07b0c66984e6A5a0A6408e5851D7479b459804;
@@ -158,6 +158,7 @@ contract Token is StandardToken {
     // creates all 750,000,000 (750M) tokens
     // allocate the tokens to the hard coded accounts
     function createTokens(bool testMode) internal {
+        require(totalSupply == 0);
         uint256 initial_expected_total = 750*million*(10**decimals);
         uint256 created = 0;
 
@@ -246,7 +247,7 @@ contract Token is StandardToken {
     * @param _from the address of the account to burn the tokens from
     * @param _value the amount of tokens to burn
     */
-    function burnFrom(address _from, uint256 _value) onlyAdmins public returns (bool success) {
+    function burnFrom(address _from, uint256 _value) onlyAdmins external returns (bool success) {
         require(balances[_from] >= _value);                     // Check if the targeted balance is enough
         balances[_from] = balances[_from].sub(_value);          // Subtract from the targeted balance
         totalSupply = totalSupply.sub(_value);                  // Update totalSupply
@@ -260,7 +261,7 @@ contract Token is StandardToken {
     *
     * Allows `_spender` to spend no more than `_value` tokens in your behalf, and then ping the contract about it
     */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) external returns (bool success) {
         require(_spender != address(0));
         tokenRecipient spender = tokenRecipient(_spender);
         if (approve(_spender, _value)) {
