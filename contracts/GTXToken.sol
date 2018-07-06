@@ -136,7 +136,7 @@ contract Token is StandardToken {
     address constant private wallet5 = 0x950f4cbA1221c2561493199dc8f87051EaFD8CB4;
     address constant private wallet6 = 0xA29544AB0105Af632b7c56616b8cf517c78164c3;
 
-    event adminEvent(address indexed _callingAdmin, address indexed _affectedAdmin, string action);
+    event adminEvent(address indexed _callingAdmin, address indexed _affectedAdmin, address callingAdmin, address affectedAdmin, string action);
     event allowTransfers(address indexed _callingAdmin, bool _transfersAllowed);
     event Burn(address indexed from, uint256 value);
 
@@ -228,7 +228,7 @@ contract Token is StandardToken {
     function addAdmin(address newAdmin) onlyAdmins external {
         require (newAdmin != address(0) && admins[newAdmin] == false);
         admins[newAdmin] = true;
-        emit adminEvent(msg.sender, newAdmin, "added");
+        emit adminEvent(msg.sender, newAdmin, msg.sender, newAdmin,  "added");
     }
 
     //remove an admin from the list of approved admins
@@ -237,7 +237,7 @@ contract Token is StandardToken {
         require(admins[oldAdmin] == true);
         require(msg.sender != oldAdmin); //prevents removing your self, and removing the last admin on the contract.
         admins[oldAdmin] = false;
-        emit adminEvent(msg.sender, oldAdmin, "removed");
+        emit adminEvent(msg.sender, oldAdmin, msg.sender, oldAdmin, "removed");
     }
 
     /**

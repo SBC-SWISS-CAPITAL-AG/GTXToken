@@ -275,12 +275,36 @@ contract('Token', function(accounts) {
         });
 
         it("Test transfer by sending negative token values", function() {
-
+            let tokenInstance;
+            let transferAmount = web3.toWei(web3.toBigNumber("-500"), "ether");
+            return Token.deployed().then(function (instance) {
+                tokenInstance = instance;
+                return tokenInstance.transfer(accounts[1], transferAmount, {from: accounts[0]});
+            }).then (function() {
+                assert.fail("Transfer should not allow sending negative amounts");
+            }).catch(function(error) {
+                assert(error.message.indexOf('revert') >= 0, "Transfer should not allow sending negative amounts");
+            });
         });
 
         it("Test transfer with buffer overflow", function () {
             const maxUint = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
-           //TODO: find a simple way to get enough tokens to test the overflow
+            //TODO: find a simple way to get enough tokens to test the overflow
+            /* Have not been able to come up with a good way to test overflow, given these starting parameters.
+             * mintToken only lets you mint 2.5x10^27 tokens at a time.
+             * max value is 1.1x10^77
+             * would require a loop that calls mintToken 4x10^49 times. or with exact numbers
+             * 463168356949264781694283940034751631413079938662563 calls to mintToken.
+             * not sure it's even realistic, given that every call would cost ether / gas.
+             *
+             *    115792089237316195423570985008687907853269984665640564039457584007913129639936
+             *  / 250000000000000000000000000
+             *  =~40000000000000000000000000000000000000000000000000
+             *
+             *   or more precisely
+             *   463168356949264781694283940034751631413079938662562 × 250000000000000000000000000 + 64039457584007913129639936
+             *
+             */
         });
     });
 
@@ -411,7 +435,7 @@ contract('Token', function(accounts) {
 
         it("Test mintToken with buffer overflow", function () {
             const maxUint = "115792089237316195423570985008687907853269984665640564039457584007913129639936";
-            //TODO: come up with a good way to test this in javascript. The main problem being ... getting a wallet to that many tokens.
+            //TODO: see "Test transfer with buffer overflow"
         });
     });
 
